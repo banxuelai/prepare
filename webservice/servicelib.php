@@ -1,22 +1,13 @@
 <?php
 class Servicelib extends CI_Model
 {
-    static public $redisConn = null;
-
     public function __construct()
     {
         parent::__construct();
     }
 
-    function redisInit()
-    {
-        if(self::$redisConn === null) {
-            $this->load->library('redis');
-            self::$redisConn = $this->redis;
-        }
-        return self::$redisConn;
-    }
-
+    # 用户白名单
+    const Table_User_Whitelist = 'user_whitelist';
 
     /**
      * KeyName

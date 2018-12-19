@@ -93,4 +93,16 @@ class CI_Controller {
 		return self::$instance;
 	}
 
+    /**
+     * 抛出 Json
+     * @param $data
+     */
+    public function displayJson($data)
+    {
+
+        header("Content-type: application/json; charset=utf-8", true);
+        exit(json_encode($data));
+    }
+
+
 }
