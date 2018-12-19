@@ -77,7 +77,7 @@ $system_path = 'system';
  *
  * NO TRAILING SLASH!
  */
-$application_folder = 'application';
+$application_folder = 'app';
 
 /*
  *---------------------------------------------------------------
