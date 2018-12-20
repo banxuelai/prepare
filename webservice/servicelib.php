@@ -9,6 +9,10 @@ class Servicelib extends CI_Model
     # 用户白名单
     const Table_User_Whitelist = 'user_whitelist';
 
+    # comic相关
+    const Table_Comic_Info = 'comic_info';
+    const Table_Comic_Author_Map = 'comic_author_map';
+    const Table_Comic_Author_Info = 'comic_author_info';
     /**
      * KeyName
      * @param $nameArr
