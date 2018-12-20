@@ -28,7 +28,7 @@ class User extends CI_Controller {
 
         $r = $this->user_model->getUserWhiteRowByUserId($userId);
 
-        $this->displayJson(array('code'      => 1, 'message'   => 'ok','data' => $r));
+        $this->displayJson(array('code' => 1, 'message' => 'ok','data' => $r));
     }
 
 }
