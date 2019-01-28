@@ -1,101 +1,34 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * URI Class
- *
- * Parses URIs and determines routing
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	URI
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/uri.html
+ * 解析uri，确定路由
+ * URI类主要处理地址字符串，将uri分解成对应的片段，存到segments数组中。
+ * querystring 分解后存到$_GET数组
+ * ROUTER路由类在之后的解析路由动作中，也主要依靠URI类的segments属性数组来获取当前上下文的请求URI信息。
  */
+
 class CI_URI {
 
-	/**
-	 * List of cached URI segments
-	 *
-	 * @var	array
-	 */
+    //缓存url片段
 	public $keyval = array();
 
-	/**
-	 * Current URI string
-	 *
-	 * @var	string
-	 */
+	//当前的uri片段
 	public $uri_string = '';
 
-	/**
-	 * List of URI segments
-	 *
-	 * Starts at 1 instead of 0.
-	 *
-	 * @var	array
-	 */
+	//uri片段数组 数组键值从1开始
 	public $segments = array();
 
-	/**
-	 * List of routed URI segments
-	 *
-	 * Starts at 1 instead of 0.
-	 *
-	 * @var	array
-	 */
+    //重建索引的片段数组 数组键值从1开始
 	public $rsegments = array();
 
-	/**
-	 * Permitted URI chars
-	 *
-	 * PCRE character group allowed in URI segments
-	 *
-	 * @var	string
-	 */
+
+	//URI段允许PCRE字符组
 	protected $_permitted_uri_chars;
 
-	/**
-	 * Class constructor
-	 *
-	 * @return	void
-	 */
+
+	//构造函数 需要获取config文件中的配置
 	public function __construct()
 	{
 		$this->config =& load_class('Config', 'core');
@@ -115,15 +48,17 @@ class CI_URI {
 			{
 				$protocol = $this->config->item('uri_protocol');
 				empty($protocol) && $protocol = 'REQUEST_URI';
-
 				switch ($protocol)
 				{
 					case 'AUTO': // For BC purposes only
 					case 'REQUEST_URI':
-						$uri = $this->_parse_request_uri();
+                        //这种REQUEST_URI方式相对复杂一点，因此封装在$this->_parse_request_uri()；里面。
+                        //其实大多数情况下，利用REQUEST URI和SCRIPT NAME都会得到我们想要的路径信息了。
+                         $uri = $this->_parse_request_uri();
 						break;
 					case 'QUERY_STRING':
-						$uri = $this->_parse_query_string();
+                        //如果是用QUERY_STRING的话，路径格式一般为index.php?/controller/method/xxx/xxx
+                        $uri = $this->_parse_query_string();
 						break;
 					case 'PATH_INFO':
 					default:
@@ -201,9 +136,8 @@ class CI_URI {
 			return '';
 		}
 
-		// parse_url() returns false if no host is present, but the path or query string
-		// contains a colon followed by a number
-		$uri = parse_url('http://dummy'.$_SERVER['REQUEST_URI']);
+        //从$_SERVER['REQUEST_URI']取值，解析成$uri和$query两个字符串，分别存储请求的路径和get请求参数
+        $uri = parse_url('http://dummy'.$_SERVER['REQUEST_URI']);
 		$query = isset($uri['query']) ? $uri['query'] : '';
 		$uri = isset($uri['path']) ? $uri['path'] : '';
 
@@ -219,8 +153,9 @@ class CI_URI {
 			}
 		}
 
-		// This section ensures that even on servers that require the URI to be in the query string (Nginx) a correct
-		// URI is found, and also fixes the QUERY_STRING server var and $_GET array.
+        //对于请求服务器的具体URI包含在查询字符串这种情况。
+        //例如$uri以?/开头的 ，实际上if条件换种写法就是if(strncmp($uri, '?/', 2) === 0))，类似：
+        //http://www.citest.com/index.php?/welcome/index
 		if (trim($uri, '/') === '' && strncmp($query, '/', 1) === 0)
 		{
 			$query = explode('?', $query, 2);
@@ -232,6 +167,7 @@ class CI_URI {
 			$_SERVER['QUERY_STRING'] = $query;
 		}
 
+		// 将查询字符串按照键名存入$_GET数组
 		parse_str($_SERVER['QUERY_STRING'], $_GET);
 
 		if ($uri === '/' OR $uri === '')
@@ -239,8 +175,9 @@ class CI_URI {
 			return '/';
 		}
 
-		// Do some final cleaning of the URI and return it
-		return $this->_remove_relative_directory($uri);
+        //调用 _remove_relative_directory($uri)函数作安全处理
+        //移除$uri中的../相对路径字符和反斜杠
+        return $this->_remove_relative_directory($uri);
 	}
 
 	// --------------------------------------------------------------------
@@ -287,16 +224,8 @@ class CI_URI {
 		return $args ? implode('/', $args) : '';
 	}
 
-	// --------------------------------------------------------------------
 
-	/**
-	 * Remove relative directory (../) and multi slashes (///)
-	 *
-	 * Do some final cleaning of the URI and return it, currently only used in self::_parse_request_uri()
-	 *
-	 * @param	string	$uri
-	 * @return	string
-	 */
+    // _remove_relative_directory($uri)函数作安全处理，移除$uri中的../相对路径字符和反斜杠////
 	protected function _remove_relative_directory($uri)
 	{
 		$uris = array();

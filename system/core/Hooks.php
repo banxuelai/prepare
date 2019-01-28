@@ -1,103 +1,47 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Hooks Class
- *
- * Provides a mechanism to extend the base system without hacking.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Libraries
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/general/hooks.html
+/*
+ * Class CI_Hooks 钩子类
+ * 主要作用是CI框架下扩展base_system 在CI启动时运行一些开发者定义的一些方法来实现一些特定的功能
+ * 在不修改系统核心文件的基础上来改变或者增加系统的核心运行功能
  */
 class CI_Hooks {
 
-	/**
-	 * Determines whether hooks are enabled
-	 *
-	 * @var	bool
-	 */
+
+    // 检测hook是否开启
 	public $enabled = FALSE;
 
-	/**
-	 * List of all hooks set in config/hooks.php
-	 *
-	 * @var	array
-	 */
+
+	// config/hooks.php中的hooks配置信息
 	public $hooks =	array();
 
-	/**
-	 * Array with class objects to use hooks methods
-	 *
-	 * @var array
-	 */
+
+	// 数组与类对象使用钩子方法
 	protected $_objects = array();
 
-	/**
-	 * In progress flag
-	 *
-	 * Determines whether hook is in progress, used to prevent infinte loops
-	 *
-	 * @var	bool
-	 */
+
+	// 防止死循环 因为钩子程序里面可能还有钩子
 	protected $_in_progress = FALSE;
 
-	/**
-	 * Class constructor
-	 *
-	 * @return	void
+
+	/*
+	 * 构造函数
 	 */
 	public function __construct()
 	{
+	    // 初始化 获取 hooks配置
 		$CFG =& load_class('Config', 'core');
 		log_message('info', 'Hooks Class Initialized');
 
-		// If hooks are not enabled in the config file
-		// there is nothing else to do
+		// 检测配置是否开启钩子
+        // 如果配置文件中设置了不允许hooks 则直接返回退出本函数
 		if ($CFG->item('enable_hooks') === FALSE)
 		{
 			return;
 		}
 
-		// Grab the "hooks" definition file.
 		if (file_exists(APPPATH.'config/hooks.php'))
 		{
 			include(APPPATH.'config/hooks.php');
@@ -108,27 +52,20 @@ class CI_Hooks {
 			include(APPPATH.'config/'.ENVIRONMENT.'/hooks.php');
 		}
 
-		// If there are no hooks, we're done.
 		if ( ! isset($hook) OR ! is_array($hook))
 		{
 			return;
 		}
 
+		// 把钩子信息都保存到Hook组件中
 		$this->hooks =& $hook;
 		$this->enabled = TRUE;
 	}
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Call Hook
-	 *
-	 * Calls a particular hook. Called by CodeIgniter.php.
-	 *
-	 * @uses	CI_Hooks::_run_hook()
-	 *
-	 * @param	string	$which	Hook name
-	 * @return	bool	TRUE on success or FALSE on failure
+	/*
+	 * 外部其实就是调用call_hook函数进行调用钩子程序
 	 */
 	public function call_hook($which = '')
 	{
@@ -152,19 +89,10 @@ class CI_Hooks {
 		return TRUE;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Run Hook
-	 *
-	 * Runs a particular hook
-	 *
-	 * @param	array	$data	Hook details
-	 * @return	bool	TRUE on success or FALSE on failure
-	 */
+    // 执行特定的钩子程序
 	protected function _run_hook($data)
 	{
-		// Closures/lambda functions and array($object, 'method') callables
+		// 这个$data会有 类名 方法名 参数 类文件
 		if (is_callable($data))
 		{
 			is_array($data)
@@ -178,21 +106,15 @@ class CI_Hooks {
 			return FALSE;
 		}
 
-		// -----------------------------------
-		// Safety - Prevents run-away loops
-		// -----------------------------------
 
-		// If the script being called happens to have the same
-		// hook call within it a loop can happen
+		// 防止死循环 因为钩子程序里面可能还有钩子 进入死循环
+        // in_progress 的存在阻止这种情况
 		if ($this->_in_progress === TRUE)
 		{
 			return;
 		}
 
-		// -----------------------------------
-		// Set file path
-		// -----------------------------------
-
+		// 下面是对钩子的预处理 判断文件 类和方法 设置路径
 		if ( ! isset($data['filepath'], $data['filename']))
 		{
 			return FALSE;
@@ -205,7 +127,7 @@ class CI_Hooks {
 			return FALSE;
 		}
 
-		// Determine and class and/or function names
+		// 确定类和函数
 		$class		= empty($data['class']) ? FALSE : $data['class'];
 		$function	= empty($data['function']) ? FALSE : $data['function'];
 		$params		= isset($data['params']) ? $data['params'] : '';
@@ -215,10 +137,10 @@ class CI_Hooks {
 			return FALSE;
 		}
 
-		// Set the _in_progress flag
+		// 开始正式执行钩子之前 先把当前的hook的状态设为正在运行中
 		$this->_in_progress = TRUE;
 
-		// Call the requested class and/or function
+		// 类+方法
 		if ($class !== FALSE)
 		{
 			// The object is stored?
@@ -247,6 +169,7 @@ class CI_Hooks {
 				$this->_objects[$class]->$function($params);
 			}
 		}
+		// 纯方法
 		else
 		{
 			function_exists($function) OR require_once($filepath);

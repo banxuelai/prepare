@@ -17,4 +17,10 @@ class User_model extends CI_Model
     {
         return $this->service('user/user_whitelist_service')->getUserWhiteRowByUserId($userId);
     }
+
+
+    public function curlRequest($a, $b)
+    {
+        return array($a, $b);
+    }
 }

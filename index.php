@@ -200,6 +200,8 @@ else
 
 define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
 
-
+$assign_to_config = array(
+    'nimei' => 'happy_new_year',
+);
 //最后就是加载CI框架的核心引导文件
 require_once BASEPATH.'core/CodeIgniter.php';

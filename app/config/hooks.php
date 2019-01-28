@@ -11,3 +11,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |	https://codeigniter.com/user_guide/general/hooks.html
 |
 */
+
+$hook['pre_controller'][] = array(
+    'class'     => 'NewYear',
+    'function'  => 'call_happy_new_year',
+    'filename'  => 'NewYear.php',
+    'filepath'  => 'hooks',
+    'params'    => array('banban', 'everyone in the world !'),
+);

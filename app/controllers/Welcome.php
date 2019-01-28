@@ -25,6 +25,19 @@ class Welcome extends CI_Controller {
 
 	public function test()
     {
-        echo phpinfo();
+        echo phpinfo();exit;
+        print_r(getMca());exit;
+        $str = "1f2dd1c42cd2d9c36db27c60239c86cb";
+        $num =  base_convert($str,36,10);
+        echo $num.PHP_EOL;
+        $num = substr($num,8);
+        echo $num;
+        exit;
+        $arr = range(1,10000);
+
+        foreach ($arr as $value)
+        {
+            echo $value.':'.base_convert($value,10,32).PHP_EOL;
+        }
     }
 }

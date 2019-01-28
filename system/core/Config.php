@@ -1,91 +1,30 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Config Class
- *
- * This class contains functions that enable config files to be managed
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Libraries
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/config.html
- */
+
 class CI_Config {
 
-	/**
-	 * List of all loaded config values
-	 *
-	 * @var	array
-	 */
+
+    // 配置变量列表
 	public $config = array();
 
-	/**
-	 * List of all loaded config files
-	 *
-	 * @var	array
-	 */
+
+	// 保存已加载的配置文件列表
 	public $is_loaded =	array();
 
-	/**
-	 * List of paths to search when trying to load a config file.
-	 *
-	 * @used-by	CI_Loader
-	 * @var		array
-	 */
+    // 配置路径
 	public $_config_paths =	array(APPPATH);
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Class constructor
-	 *
-	 * Sets the $config data from the primary config.php file as a class variable.
-	 *
-	 * @return	void
-	 */
+    /**
+     * 构造函数
+     * 加载默认config.php中的配置 如果config['base_url']不存在则根据$_SERVER中信息计算并设置
+     */
 	public function __construct()
 	{
 		$this->config =& get_config();
 
-		// Set the base_url automatically if none was provided
+		// 如果没有配置 系统给他进行赋值
 		if (empty($this->config['base_url']))
 		{
 			if (isset($_SERVER['SERVER_ADDR']))
@@ -106,7 +45,6 @@ class CI_Config {
 			{
 				$base_url = 'http://localhost/';
 			}
-
 			$this->set_item('base_url', $base_url);
 		}
 
@@ -115,21 +53,23 @@ class CI_Config {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Load Config File
-	 *
-	 * @param	string	$file			Configuration file name
-	 * @param	bool	$use_sections		Whether configuration values should be loaded into their own section
-	 * @param	bool	$fail_gracefully	Whether to just return FALSE or display an error message
-	 * @return	bool	TRUE if the file was loaded correctly or FALSE on failure
-	 */
+
+    /*
+     * 加载配置文件
+     * $file 配置文件名
+     * $use_sections  设置是否当前配置文件是否以独立一个数组的形式充当Config::$config的一个元素加入
+     * $fail_gracefully 设置要不要报错
+     */
 	public function load($file = '', $use_sections = FALSE, $fail_gracefully = FALSE)
 	{
+	    // 既可以以xxx.php的形式传参，也可以以xxx形式
+        // 默认加载文件config.php
 		$file = ($file === '') ? 'config' : str_replace('.php', '', $file);
 		$loaded = FALSE;
 
 		foreach ($this->_config_paths as $path)
 		{
+		    // 分别从特定环境下的配置目录和默认的配置目录里面寻找
 			foreach (array($file, ENVIRONMENT.DIRECTORY_SEPARATOR.$file) as $location)
 			{
 				$file_path = $path.'config/'.$location.'.php';
@@ -138,11 +78,13 @@ class CI_Config {
 					return TRUE;
 				}
 
+				// 文件不存在 下一个循环
 				if ( ! file_exists($file_path))
 				{
 					continue;
 				}
 
+				// 文件存在 加载文件
 				include($file_path);
 
 				if ( ! isset($config) OR ! is_array($config))
@@ -166,6 +108,7 @@ class CI_Config {
 					$this->config = array_merge($this->config, $config);
 				}
 
+				// 将配置文件路径放入$this->is_load数组 表明已经加载
 				$this->is_loaded[] = $file_path;
 				$config = NULL;
 				$loaded = TRUE;
@@ -188,11 +131,7 @@ class CI_Config {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Fetch a config file item
-	 *
-	 * @param	string	$item	Config item name
-	 * @param	string	$index	Index name
-	 * @return	string|null	The configuration item or NULL if the item doesn't exist
+     * 取得某一个配置项目的内容
 	 */
 	public function item($item, $index = '')
 	{
@@ -207,13 +146,11 @@ class CI_Config {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Fetch a config file item with slash appended (if not empty)
-	 *
-	 * @param	string		$item	Config item name
-	 * @return	string|null	The configuration item or NULL if the item doesn't exist
+     * 此方法仅仅是对配置信息进行一些修剪处理而已
 	 */
 	public function slash_item($item)
 	{
+	    // 如果此配置项仅仅是包含一些对配置无效的字符，则直接返回空
 		if ( ! isset($this->config[$item]))
 		{
 			return NULL;
@@ -223,22 +160,13 @@ class CI_Config {
 			return '';
 		}
 
+		// 保证一一条/结尾
 		return rtrim($this->config[$item], '/').'/';
 	}
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Site URL
-	 *
-	 * Returns base_url . index_page [. uri_string]
-	 *
-	 * @uses	CI_Config::_uri_string()
-	 *
-	 * @param	string|string[]	$uri	URI string or an array of segments
-	 * @param	string	$protocol
-	 * @return	string
-	 */
+
 	public function site_url($uri = '', $protocol = NULL)
 	{
 		$base_url = $this->slash_item('base_url');
@@ -289,20 +217,12 @@ class CI_Config {
 		return $base_url.$this->item('index_page').$uri;
 	}
 
-	// -------------------------------------------------------------
+    /**
+     * 此函数和上个函数还有下个函数以及下下个函数都可以认为是路由处理
+     * 不是特别明白为什么要放到配置文件中
+     */
 
-	/**
-	 * Base URL
-	 *
-	 * Returns base_url [. uri_string]
-	 *
-	 * @uses	CI_Config::_uri_string()
-	 *
-	 * @param	string|string[]	$uri	URI string or an array of segments
-	 * @param	string	$protocol
-	 * @return	string
-	 */
-	public function base_url($uri = '', $protocol = NULL)
+    public function base_url($uri = '', $protocol = NULL)
 	{
 		$base_url = $this->slash_item('base_url');
 
@@ -324,15 +244,10 @@ class CI_Config {
 
 	// -------------------------------------------------------------
 
-	/**
-	 * Build URI string
-	 *
-	 * @used-by	CI_Config::site_url()
-	 * @used-by	CI_Config::base_url()
-	 *
-	 * @param	string|string[]	$uri	URI string or an array of segments
-	 * @return	string
-	 */
+    /*
+     * 按照当前规定路由格式  返回正确的uri_string
+     * 主要是如果当参数$uri是数组的时候的一些处理
+     */
 	protected function _uri_string($uri)
 	{
 		if ($this->item('enable_query_strings') === FALSE)

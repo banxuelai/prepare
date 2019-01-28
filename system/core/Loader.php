@@ -1,124 +1,53 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /**
- * Loader Class
- *
- * Loads framework components.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Loader
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/loader.html
- */
+ * 加载器类
+ * 加载器，顾名思义，是用于加载元素的，
+ * 加载的元素可以是库（类），视图文件 ，驱动器 ，辅助函数 ，模型
+ * 或其他你自己的文件。
+ * Loader组件在CI里面也是一个很重要的组件，功能也比较明了。
+ * 如果已经阅读过Controller组件，会发现Controller组件的代码也只有十来行，但它却可以做很多事，一定程度上
+ * 要归功于Loader组件这个好助手或者好基友。
+ * 不过Loader组件的代码真的不少，主要以常用的几个方法以主线来探讨：model(),view(),library(),helper();
+*/
+
 class CI_Loader {
 
-	// All these are set automatically. Don't mess with them.
-	/**
-	 * Nesting level of the output buffering mechanism
-	 *
-	 * @var	int
-	 */
+
+    // 输出缓存机制的嵌套级别
 	protected $_ci_ob_level;
 
-	/**
-	 * List of paths to load views from
-	 *
-	 * @var	array
-	 */
+    //加载视图的路径列表
 	protected $_ci_view_paths =	array(VIEWPATH	=> TRUE);
 
-	/**
-	 * List of paths to load libraries from
-	 *
-	 * @var	array
-	 */
+    //加载库的路径列表
 	protected $_ci_library_paths =	array(APPPATH, BASEPATH);
 
-	/**
-	 * List of paths to load models from
-	 *
-	 * @var	array
-	 */
+    //加载模型的路径列表
 	protected $_ci_model_paths =	array(APPPATH);
 
-	/**
-	 * List of paths to load helpers from
-	 *
-	 * @var	array
-	 */
+    //加载助手的路径列表
 	protected $_ci_helper_paths =	array(APPPATH, BASEPATH);
 
-	/**
-	 * List of cached variables
-	 *
-	 * @var	array
-	 */
+
+	//缓存变量列表
 	protected $_ci_cached_vars =	array();
 
-	/**
-	 * List of loaded classes
-	 *
-	 * @var	array
-	 */
+
+	//加载类列表
 	protected $_ci_classes =	array();
 
-	/**
-	 * List of loaded models
-	 *
-	 * @var	array
-	 */
+    //加载模型列表
 	protected $_ci_models =	array();
 
-	/**
-	 * List of loaded helpers
-	 *
-	 * @var	array
-	 */
+
+	// 加载助手列表
 	protected $_ci_helpers =	array();
 
-	/**
-	 * List of class name mappings
-	 *
-	 * @var	array
-	 */
+
+	// 类名称映射列表
 	protected $_ci_varmap =	array(
 		'unit_test' => 'unit',
 		'user_agent' => 'agent'
@@ -126,49 +55,35 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Class constructor
-	 *
-	 * Sets component load paths, gets the initial output buffering level.
-	 *
-	 * @return	void
-	 */
+    /*
+     * 构造函数
+     * 设置组件加载路径，获取初始输出缓存级
+     */
 	public function __construct()
 	{
+	    // 获取初始输出缓存级
 		$this->_ci_ob_level = ob_get_level();
+		// 设置组件加载路径
 		$this->_ci_classes =& is_loaded();
 
 		log_message('info', 'Loader Class Initialized');
 	}
 
 	// --------------------------------------------------------------------
-
-	/**
-	 * Initializer
-	 *
-	 * @todo	Figure out a way to move this to the constructor
-	 *		without breaking *package_path*() methods.
-	 * @uses	CI_Loader::_ci_autoloader()
-	 * @used-by	CI_Controller::__construct()
-	 * @return	void
-	 */
+    /*
+     * initialize初始化
+     */
 	public function initialize()
 	{
+	    // 加载autoload.php配置中的文件
 		$this->_ci_autoloader();
 	}
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Is Loaded
-	 *
-	 * A utility method to test if a class is in the self::$_ci_classes array.
-	 *
-	 * @used-by	Mainly used by Form Helper function _get_validation_object().
-	 *
-	 * @param 	string		$class	Class name to check for
-	 * @return 	string|bool	Class object name if loaded or FALSE
-	 */
+    /*
+     * 检测类是否加载
+     */
 	public function is_loaded($class)
 	{
 		return array_search(ucfirst($class), $this->_ci_classes, TRUE);
@@ -176,17 +91,12 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Library Loader
-	 *
-	 * Loads and instantiates libraries.
-	 * Designed to be called from application controllers.
-	 *
-	 * @param	mixed	$library	Library name
-	 * @param	array	$params		Optional parameters to pass to the library class constructor
-	 * @param	string	$object_name	An optional object name to assign to
-	 * @return	object
-	 */
+
+    /*
+     * 该方法用于加载核心类。
+     * $library为相应的类名，$params为实例化此类的时候可能要用到的参数，
+     * $object_name为给这个类的实例自义定一个名字。
+     */
 	public function library($library, $params = NULL, $object_name = NULL)
 	{
 		if (empty($library))
@@ -195,6 +105,8 @@ class CI_Loader {
 		}
 		elseif (is_array($library))
 		{
+		    //如果通过数组加载多个  拆开再调用本方法
+            // 其实可以递归调用 不过没有或者必要
 			foreach ($library as $key => $value)
 			{
 				if (is_int($key))
@@ -215,24 +127,20 @@ class CI_Loader {
 			$params = NULL;
 		}
 
+		// 真正把类库加载进来的是下面这个方法
 		$this->_ci_load_library($library, $params, $object_name);
 		return $this;
 	}
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Model Loader
-	 *
-	 * Loads and instantiates models.
-	 *
-	 * @param	mixed	$model		Model name
-	 * @param	string	$name		An optional object name to assign to
-	 * @param	bool	$db_conn	An optional database connection configuration to initialize
-	 * @return	object
-	 */
+    /*
+     * 加载模型
+     * 加载过程和上面一个方法基本一样
+     */
 	public function model($model, $name = '', $db_conn = FALSE)
 	{
+	    // 可以以数组形式同时加载多个$model
 		if (empty($model))
 		{
 			return $this;
@@ -249,16 +157,15 @@ class CI_Loader {
 
 		$path = '';
 
-		// Is the model in a sub-folder? If so, parse out the filename and path.
+		// 判断该模型在一个子文件夹中  如果是 解析文件名和路径
 		if (($last_slash = strrpos($model, '/')) !== FALSE)
 		{
-			// The path is in front of the last slash
 			$path = substr($model, 0, ++$last_slash);
 
-			// And the model name behind it
 			$model = substr($model, $last_slash);
 		}
 
+		// 如果没有给当前model定义名字 以$model本身作为名字
 		if (empty($name))
 		{
 			$name = $model;
@@ -275,6 +182,7 @@ class CI_Loader {
 			throw new RuntimeException('The model name you are loading is the name of a resource that is already being used: '.$name);
 		}
 
+		// 如果需要同时连接数据库 则调用Loader::database() 方法加载数据库类
 		if ($db_conn !== FALSE && ! class_exists('CI_DB', FALSE))
 		{
 			if ($db_conn === TRUE)
@@ -285,14 +193,8 @@ class CI_Loader {
 			$this->database($db_conn, FALSE, TRUE);
 		}
 
-		// Note: All of the code under this condition used to be just:
-		//
-		//       load_class('Model', 'core');
-		//
-		//       However, load_class() instantiates classes
-		//       to cache them for later use and that prevents
-		//       MY_Model from being an abstract class and is
-		//       sub-optimal otherwise anyway.
+
+		// 加载父类model
 		if ( ! class_exists('CI_Model', FALSE))
 		{
 			$app_path = APPPATH.'core'.DIRECTORY_SEPARATOR;
@@ -311,6 +213,7 @@ class CI_Loader {
 				require_once(BASEPATH.'core'.DIRECTORY_SEPARATOR.'Model.php');
 			}
 
+			// 引入当前model
 			$class = config_item('subclass_prefix').'Model';
 			if (file_exists($app_path.$class.'.php'))
 			{
@@ -362,17 +265,9 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Database Loader
-	 *
-	 * @param	mixed	$params		Database configuration options
-	 * @param	bool	$return 	Whether to return the database object
-	 * @param	bool	$query_builder	Whether to enable Query Builder
-	 *					(overrides the configuration setting)
-	 *
-	 * @return	object|bool	Database object if $return is set to TRUE,
-	 *					FALSE on failure, CI_Loader instance in any other case
-	 */
+    /*
+     * 数据库Loader
+     */
 	public function database($params = '', $return = FALSE, $query_builder = NULL)
 	{
 		// Grab the super object
@@ -1002,32 +897,21 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Internal CI Library Loader
-	 *
-	 * @used-by	CI_Loader::library()
-	 * @uses	CI_Loader::_ci_init_library()
-	 *
-	 * @param	string	$class		Class name to load
-	 * @param	mixed	$params		Optional parameters to pass to the class constructor
-	 * @param	string	$object_name	Optional object name to assign to
-	 * @return	void
-	 */
+    /*
+     * 加载类
+     */
 	protected function _ci_load_library($class, $params = NULL, $object_name = NULL)
 	{
-		// Get the class name, and while we're at it trim any slashes.
-		// The directory path can be included as part of the class name,
-		// but we don't want a leading slash
+
+        //去掉后缀.php，是为了方便外部可以通过xxx.php也可以通过xxx.php来传入类名。
+        //同时去掉两端的/。
 		$class = str_replace('.php', '', trim($class, '/'));
 
-		// Was the path included with the class name?
-		// We look for a slash to determine this
 		if (($last_slash = strrpos($class, '/')) !== FALSE)
 		{
-			// Extract the path
+			// 目录部分
 			$subdir = substr($class, 0, ++$last_slash);
-
-			// Get the filename from the path
+            // 类名部分
 			$class = substr($class, $last_slash);
 		}
 		else
@@ -1037,13 +921,16 @@ class CI_Loader {
 
 		$class = ucfirst($class);
 
-		// Is this a stock library? There are a few special conditions if so ...
+        //CI允许类文件以大写字母开头或者全小写，下面的遍历，就是在遍历这两种情况。
+        //是否有我们开发人员自己写的扩展当前类的扩展？如果有的话，把它加载进来。
 		if (file_exists(BASEPATH.'libraries/'.$subdir.$class.'.php'))
 		{
 			return $this->_ci_load_stock_library($class, $subdir, $params, $object_name);
 		}
 
-		// Safety: Was the class already loaded by a previous call?
+        //我们加载的类最终都是加载给超级控制器的，
+        //如果超级控制器已经有的话，那么我们没必要加载。
+        //如果没有，则实例它并加载给控制器。
 		if (class_exists($class, FALSE))
 		{
 			$property = $object_name;
@@ -1096,18 +983,8 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Internal CI Stock Library Loader
-	 *
-	 * @used-by	CI_Loader::_ci_load_library()
-	 * @uses	CI_Loader::_ci_init_library()
-	 *
-	 * @param	string	$library_name	Library name to load
-	 * @param	string	$file_path	Path to the library filename, relative to libraries/
-	 * @param	mixed	$params		Optional parameters to pass to the class constructor
-	 * @param	string	$object_name	Optional object name to assign to
-	 * @return	void
-	 */
+
+    // 库装载
 	protected function _ci_load_stock_library($library_name, $file_path, $params, $object_name)
 	{
 		$prefix = 'CI_';
@@ -1180,27 +1057,14 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Internal CI Library Instantiator
-	 *
-	 * @used-by	CI_Loader::_ci_load_stock_library()
-	 * @used-by	CI_Loader::_ci_load_library()
-	 *
-	 * @param	string		$class		Class name
-	 * @param	string		$prefix		Class name prefix
-	 * @param	array|null|bool	$config		Optional configuration to pass to the class constructor:
-	 *						FALSE to skip;
-	 *						NULL to search in config paths;
-	 *						array containing configuration data
-	 * @param	string		$object_name	Optional object name to assign to
-	 * @return	void
-	 */
+
+    // 此方法用于实例化已经把类文件include进来的类
 	protected function _ci_init_library($class, $prefix, $config = FALSE, $object_name = NULL)
 	{
-		// Is there an associated config file for this class? Note: these should always be lowercase
+	    // 是否有类的配置信息
 		if ($config === NULL)
 		{
-			// Fetch the config paths containing any package paths
+			// 获取包含任何路径的配置路径
 			$config_component = $this->_ci_get_component('config');
 
 			if (is_array($config_component->_config_paths))
@@ -1208,9 +1072,6 @@ class CI_Loader {
 				$found = FALSE;
 				foreach ($config_component->_config_paths as $path)
 				{
-					// We test for both uppercase and lowercase, for servers that
-					// are case-sensitive with regard to file names. Load global first,
-					// override with environment next
 					if (file_exists($path.'config/'.strtolower($class).'.php'))
 					{
 						include($path.'config/'.strtolower($class).'.php');
@@ -1287,14 +1148,16 @@ class CI_Loader {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * CI Autoloader
-	 *
-	 * Loads component listed in the config/autoload.php file.
-	 *
-	 * @used-by	CI_Loader::initialize()
-	 * @return	void
-	 */
+    /*
+     * 自动加载器
+     * autoload.php配置的自动加载文件有
+     * 1 Packages
+     * 2 Libraries
+     * 3 Helper
+     * 4 Custom config
+     * 5 Language files
+     * 6 Models
+     */
 	protected function _ci_autoloader()
 	{
 		if (file_exists(APPPATH.'config/autoload.php'))
@@ -1312,7 +1175,7 @@ class CI_Loader {
 			return;
 		}
 
-		// Autoload packages
+		// 自动加载packages 也就是package_path 加入到library model helper config
 		if (isset($autoload['packages']))
 		{
 			foreach ($autoload['packages'] as $package_path)
@@ -1321,7 +1184,7 @@ class CI_Loader {
 			}
 		}
 
-		// Load any custom config file
+		// 加载config 文件
 		if (count($autoload['config']) > 0)
 		{
 			foreach ($autoload['config'] as $val)
@@ -1330,7 +1193,7 @@ class CI_Loader {
 			}
 		}
 
-		// Autoload helpers and languages
+		// 加载helper language
 		foreach (array('helper', 'language') as $type)
 		{
 			if (isset($autoload[$type]) && count($autoload[$type]) > 0)
@@ -1339,13 +1202,13 @@ class CI_Loader {
 			}
 		}
 
-		// Autoload drivers
+		// 加载drivers
 		if (isset($autoload['drivers']))
 		{
 			$this->driver($autoload['drivers']);
 		}
 
-		// Load libraries
+		//  加载libraries
 		if (isset($autoload['libraries']) && count($autoload['libraries']) > 0)
 		{
 			// Load the database driver.
@@ -1359,7 +1222,7 @@ class CI_Loader {
 			$this->library($autoload['libraries']);
 		}
 
-		// Autoload models
+		// 加载models
 		if (isset($autoload['model']))
 		{
 			$this->model($autoload['model']);

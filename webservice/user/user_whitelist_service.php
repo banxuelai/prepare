@@ -16,6 +16,7 @@ class user_whitelist_service extends servicelib
             return array();
         }
 
+
         return $this->master()->select('user_id, white_status')->from(self::Table_User_Whitelist)
             ->where('user_id', $userId)->limit(1)->get()->row_array();
     }

@@ -1,67 +1,20 @@
 <?php
+
+
 /**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+ * 这个BASEPATH，就是在入口文件(index.php)里面定义的那个BASEPATH～
+ * 如果没有定义BASEPATH，那么直接退出，下面程序都不执行。
+ * 其实除了入口文件index.php开头没有这句话之外，所有文件都会有这句话
+ * 也就是说，所有文件都不能单独运行，一定是index.php在运行过程中把这些文件通
+ * 过某种方式引进来运行，所以只有入口文件index.php才能被访问。
+*/
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * System Initialization File
- *
- * Loads the base classes and executes the request.
- *
- * @package		CodeIgniter
- * @subpackage	CodeIgniter
- * @category	Front-controller
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/
- */
 
-/**
- * CodeIgniter Version
- *
- * @var	string
- *
- */
 	const CI_VERSION = '3.1.9';
 
-/*
- * ------------------------------------------------------
- *  Load the framework constants
- * ------------------------------------------------------
- */
+	//加载框架常量
 	if (file_exists(APPPATH.'config/'.ENVIRONMENT.'/constants.php'))
 	{
 		require_once(APPPATH.'config/'.ENVIRONMENT.'/constants.php');
@@ -72,11 +25,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		require_once(APPPATH.'config/constants.php');
 	}
 
-/*
- * ------------------------------------------------------
- *  Load the global functions
- * ------------------------------------------------------
- */
+
+    //加载全局函数库
 	require_once(BASEPATH.'core/Common.php');
 
 
@@ -130,44 +80,32 @@ if ( ! is_php('5.4'))
 }
 
 
-/*
- * ------------------------------------------------------
- *  Define a custom error handler so we can log PHP errors
- * ------------------------------------------------------
- */
+//自定义错误 异常和程序完成的函数
 	set_error_handler('_error_handler');
 	set_exception_handler('_exception_handler');
 	register_shutdown_function('_shutdown_handler');
-
 /*
- * ------------------------------------------------------
- *  Set the subclass_prefix
- * ------------------------------------------------------
- *
- * Normally the "subclass_prefix" is set in the config file.
- * The subclass prefix allows CI to know if a core class is
- * being extended via a library in the local application
- * "libraries" folder. Since CI allows config items to be
- * overridden via data set in the main index.php file,
- * before proceeding we need to know if a subclass_prefix
- * override exists. If so, we will set this value now,
- * before any classes are loaded
- * Note: Since the config file data is cached it doesn't
- * hurt to load it here.
+a、设置错误处理：set_error_handler('_error_handler')。
+处理函数原型：function _error_handler($severity, $message, $filepath, $line)。
+程序本身原因或手工触发trigger_error("A custom error has been triggered");
+b、设置异常处理：set_exception_handler('_exception_handler')。
+处理函数原型：function _exception_handler($exception)。
+当用户抛出异常时触发throw new Exception('Exception occurred');
+c、千万不要被shutdown迷惑：register_shutdown_function('_shutdown_handler')可以这样理解调用条件：
+当页面被用户强制停止时、当程序代码运行超时时、当php代码执行完成时。
  */
+
+
+
 	if ( ! empty($assign_to_config['subclass_prefix']))
 	{
 		get_config(array('subclass_prefix' => $assign_to_config['subclass_prefix']));
 	}
 
-/*
- * ------------------------------------------------------
- *  Should we use a Composer autoloader?
- * ------------------------------------------------------
- */
+    //加载composer
 	if ($composer_autoload = config_item('composer_autoload'))
 	{
-		if ($composer_autoload === TRUE)
+        if ($composer_autoload === TRUE)
 		{
 			file_exists(APPPATH.'vendor/autoload.php')
 				? require_once(APPPATH.'vendor/autoload.php')
@@ -183,42 +121,30 @@ if ( ! is_php('5.4'))
 		}
 	}
 
-/*
- * ------------------------------------------------------
- *  Start the timer... tick tock tick tock...
- * ------------------------------------------------------
- */
+	# 到这里，CI框架的基本环境配置初始化已经算完成了，接下来，CodeIgniter会借助一系列的组件，完成更多的需求
+
+
+    //Benchmark是基准点的意思，他很简单，就是计算任意两点之间程序的运行时间
+    //计算程序运行消耗的时间和内存
+    //$BM->mark 记录当前位置的时间点 通过两个时间点 计算出时间
 	$BM =& load_class('Benchmark', 'core');
 	$BM->mark('total_execution_time_start');
 	$BM->mark('loading_time:_base_classes_start');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the hooks class
- * ------------------------------------------------------
- */
+
+	// 钩子Hooks组件 可以很好地扩展和改造CI
+    // 可以这么理解 一个应用从运行到结束这个期间，CI为我们保留了一些位置实现钩子（也就是一段代码）
+    // 在应用运行过程中，当运行到可以放钩子的位置，如果有就运行它
 	$EXT =& load_class('Hooks', 'core');
 
-/*
- * ------------------------------------------------------
- *  Is there a "pre_system" hook?
- * ------------------------------------------------------
- */
+
 	$EXT->call_hook('pre_system');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the config class
- * ------------------------------------------------------
- *
- * Note: It is important that Config is loaded first as
- * most other classes depend on it either directly or by
- * depending on another class that uses it.
- *
- */
+
+	//加载配置组件
 	$CFG =& load_class('Config', 'core');
 
-	// Do we have any manually set config items in the index.php file?
+	//如果index.php定义配置数组，那么丢给配置组件，统一管理
 	if (isset($assign_to_config) && is_array($assign_to_config))
 	{
 		foreach ($assign_to_config as $key => $value)
@@ -228,18 +154,7 @@ if ( ! is_php('5.4'))
 	}
 
 /*
- * ------------------------------------------------------
- * Important charset-related stuff
- * ------------------------------------------------------
- *
- * Configure mbstring and/or iconv if they are enabled
- * and set MB_ENABLED and ICONV_ENABLED constants, so
- * that we don't repeatedly do extension_loaded() or
- * function_exists() calls.
- *
- * Note: UTF-8 class depends on this. It used to be done
- * in it's constructor, but it's _not_ class-specific.
- *
+ * 处理框架字符集问题
  */
 	$charset = strtoupper(config_item('charset'));
 	ini_set('default_charset', $charset);
@@ -289,114 +204,55 @@ if ( ! is_php('5.4'))
 	require_once(BASEPATH.'core/compat/password.php');
 	require_once(BASEPATH.'core/compat/standard.php');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the UTF-8 class
- * ------------------------------------------------------
- */
+    // UTF8组件
 	$UNI =& load_class('Utf8', 'core');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the URI class
- * ------------------------------------------------------
- */
+    // URI组件
 	$URI =& load_class('URI', 'core');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the routing class and set the routing
- * ------------------------------------------------------
- */
+    // 路由Router组件
 	$RTR =& load_class('Router', 'core', isset($routing) ? $routing : NULL);
 
-/*
- * ------------------------------------------------------
- *  Instantiate the output class
- * ------------------------------------------------------
- */
+    // 输出组件
 	$OUT =& load_class('Output', 'core');
 
-/*
- * ------------------------------------------------------
- *	Is there a valid cache file? If so, we're done...
- * ------------------------------------------------------
- */
-	if ($EXT->call_hook('cache_override') === FALSE && $OUT->_display_cache($CFG, $URI) === TRUE)
+
+    //下面是输出缓存的处理，这里允许我们自己写个hook来取替代CI原来Output类的缓存输出
+    //如果缓存命中则输出，并结束整个CI的单次生命周期。如果没有命中缓存，或没有启用缓存，那么将继续向下执行。
+    if ($EXT->call_hook('cache_override') === FALSE && $OUT->_display_cache($CFG, $URI) === TRUE)
 	{
 		exit;
 	}
 
-/*
- * -----------------------------------------------------
- * Load the security class for xss and csrf support
- * -----------------------------------------------------
- */
+    //安全组件
 	$SEC =& load_class('Security', 'core');
 
-/*
- * ------------------------------------------------------
- *  Load the Input class and sanitize globals
- * ------------------------------------------------------
- */
+    //安全组件的好基友INPUT组件（主要结合安全组件做一些输入方面的安全处理）
 	$IN	=& load_class('Input', 'core');
 
-/*
- * ------------------------------------------------------
- *  Load the Language class
- * ------------------------------------------------------
- */
+    //语言组件
 	$LANG =& load_class('Lang', 'core');
 
-/*
- * ------------------------------------------------------
- *  Load the app controller and local controller
- * ------------------------------------------------------
- *
- */
-	// Load the base controller class
+
+	//引入控制器父类文件
 	require_once BASEPATH.'core/Controller.php';
 
-	/**
-	 * Reference to the CI_Controller method.
-	 *
-	 * Returns current CI instance object
-	 *
-	 * @return CI_Controller
-	 */
 	function &get_instance()
 	{
 		return CI_Controller::get_instance();
 	}
 
+	// 控制器父类通过前缀方式进行扩展
+    // 引入自定义扩展controller
 	if (file_exists(APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php'))
 	{
 		require_once APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php';
 	}
 
-	// Set a mark point for benchmarking
+	// 这里mark一下，说明CI的所需要的基本的类都加载完了
 	$BM->mark('loading_time:_base_classes_end');
 
-/*
- * ------------------------------------------------------
- *  Sanity checks
- * ------------------------------------------------------
- *
- *  The Router class has already validated the request,
- *  leaving us with 3 options here:
- *
- *	1) an empty class name, if we reached the default
- *	   controller, but it didn't exist;
- *	2) a query string which doesn't go through a
- *	   file_exists() check
- *	3) a regular request for a non-existing page
- *
- *  We handle all of these as a 404 error.
- *
- *  Furthermore, none of the methods in the app controller
- *  or the loader class can be called via the URI, nor can
- *  controller methods that begin with an underscore.
- */
+	// class 与 method 验证
 
 	$e404 = FALSE;
 	$class = ucfirst($RTR->class);
@@ -505,34 +361,30 @@ if ( ! is_php('5.4'))
  *  Is there a "pre_controller" hook?
  * ------------------------------------------------------
  */
-	$EXT->call_hook('pre_controller');
+	$re = $EXT->call_hook('pre_controller');
 
-/*
- * ------------------------------------------------------
- *  Instantiate the requested controller
- * ------------------------------------------------------
- */
-	// Mark a start point so we can benchmark the controller
+    // mark
 	$BM->mark('controller_execution_time_( '.$class.' / '.$method.' )_start');
+
+    //折腾了这么久，终于实例化我们想要的控制器了
+    //终于调用了！！！！！！！！！！！就在这里。
+    //不过，不是打击你，虽然我们请求的控制器的那个方法被调用了，但是实际上，我们想要的输出并没有完全输出来。
+    //这就是因为$this->load->view();并不是马上输出结果，而是把结果放到缓冲区，然后最后Output类把它冲出来。
 
 	$CI = new $class();
 
-/*
- * ------------------------------------------------------
- *  Is there a "post_controller_constructor" hook?
- * ------------------------------------------------------
- */
+
 	$EXT->call_hook('post_controller_constructor');
 
-/*
- * ------------------------------------------------------
- *  Call the requested method
- * ------------------------------------------------------
- */
+    //现在，所有的请求都会被定位到改控制器的index()中去了。如果_remap不存在，则调用实际控制器的$method方法
+    //call_user_func_array 调用回调函数，并把一个数组参数作为回调函数的参数，call_user_func_array 函数和 call_user_func 很相似
+    //只是使用了数组的传递参数形式，让参数的结构更清晰。
 	call_user_func_array(array(&$CI, $method), $params);
 
 	// Mark a benchmark end point
 	$BM->mark('controller_execution_time_( '.$class.' / '.$method.' )_end');
+
+	# controller_execution_time_( User / check_user_white )_start
 
 /*
  * ------------------------------------------------------
@@ -551,9 +403,6 @@ if ( ! is_php('5.4'))
 		$OUT->_display();
 	}
 
-/*
- * ------------------------------------------------------
- *  Is there a "post_system" hook?
- * ------------------------------------------------------
- */
+
 	$EXT->call_hook('post_system');
+

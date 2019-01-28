@@ -1,69 +1,38 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+/*
+ * 全局函数库
+ */
+
 /**
- * Common Functions
- *
- * Loads the base classes and executes the request.
- *
- * @package		CodeIgniter
- * @subpackage	CodeIgniter
- * @category	Common Functions
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/
+ * 为什么还要定义这些全局函数呢？
+ * 比如说，下面有很多函数，如get_config()、config_item()这两个方法不是应该由core/Config.php这个组件去做么？
+ * 那个load_class()不应该由core/Loader.php去做么？
+ * 把这些函数定义出来貌似感觉架构变得不那么优雅，有点多余。
+ * 其实是出于这样一种情况：
+ * 比如说，如果一切和配置有关的动作都由Config组件来完成，一切加载的动作都由Loader来完成，
+ * 试想一下，如果我要加载Config组件，那么，必须得通过Loader来加载，所以Loader必须比Config要更早实例化，
+ * 但是如果Loader实例化的时候需要一些和Loader有关的配置信息才能实例化呢？那就必须通过Config来为它取得配置信息。
+ * 这里就出现了鸡和鸡蛋的问题。
+ * 我之前写自己的框架也纠结过这样的问题，后来参考了YII框架，发现它里面其实都有同样的问题，它里面有个Exception的组件，
+ * 但是在加载这个Exception组件之前，在加载其它组件的时候，如果出错了，那谁来处理异常和错误信息呢？答案就是先定义一些公共的函数。
+ * 所以这些公共函数就很好地解决了这个问题，这也是为什么Common.php要很早被引入。
  */
 
 // ------------------------------------------------------------------------
 
+// 确定最新的php版本大于该值
 if ( ! function_exists('is_php'))
 {
-	/**
-	 * Determines if the current version of PHP is equal to or greater than the supplied value
-	 *
-	 * @param	string
-	 * @return	bool	TRUE if the current version is $version or higher
-	 */
+    // 判断当前php版本是否大于$version version_compare回去比较
 	function is_php($version)
 	{
 		static $_is_php;
 		$version = (string) $version;
 
+		// PHP_VERSION获取当前php版本
 		if ( ! isset($_is_php[$version]))
 		{
 			$_is_php[$version] = version_compare(PHP_VERSION, $version, '>=');
@@ -73,47 +42,40 @@ if ( ! function_exists('is_php'))
 	}
 }
 
-// ------------------------------------------------------------------------
-
+// 文件的写入性能测试
 if ( ! function_exists('is_really_writable'))
 {
-	/**
-	 * Tests for file writability
-	 *
-	 * is_writable() returns TRUE on Windows servers when you really can't write to
-	 * the file, based on the read-only attribute. is_writable() is also unreliable
-	 * on Unix servers if safe_mode is on.
-	 *
-	 * @link	https://bugs.php.net/bug.php?id=54709
-	 * @param	string
-	 * @return	bool
-	 */
+
+    //该函数和php官方手册上面写的差不多，兼容linux/Unix和windows系统。
+    //可以查看手册：http://www.php.net/manual/en/function.is-writable.php
 	function is_really_writable($file)
 	{
-		// If we're on a Unix server with safe_mode off we call is_writable
+	    // DIRECTORY_SEPARATOR是系统目录分隔符  可以判断是Linux 系统
 		if (DIRECTORY_SEPARATOR === '/' && (is_php('5.4') OR ! ini_get('safe_mode')))
 		{
 			return is_writable($file);
 		}
 
-		/* For Windows servers and safe_mode "on" installations we'll actually
-		 * write a file then read it. Bah...
-		 */
+        // 对于windows系统
 		if (is_dir($file))
 		{
+		    // 如果是目录文件 创建一个随机生成的文件
 			$file = rtrim($file, '/').'/'.md5(mt_rand());
+			// 如果不可创建 则返回不可写
 			if (($fp = @fopen($file, 'ab')) === FALSE)
 			{
 				return FALSE;
 			}
 
 			fclose($fp);
+			// 删除原来的文件
 			@chmod($file, 0777);
 			@unlink($file);
 			return TRUE;
 		}
 		elseif ( ! is_file($file) OR ($fp = @fopen($file, 'ab')) === FALSE)
 		{
+		    // 如果是一个文件 通过写入方式打不开判断不可写
 			return FALSE;
 		}
 
@@ -126,23 +88,14 @@ if ( ! function_exists('is_really_writable'))
 
 if ( ! function_exists('load_class'))
 {
-	/**
-	 * Class registry
-	 *
-	 * This function acts as a singleton. If the requested class does not
-	 * exist it is instantiated and set to a static variable. If it has
-	 * previously been instantiated the variable is returned.
-	 *
-	 * @param	string	the class name being requested
-	 * @param	string	the directory where the class should be found
-	 * @param	mixed	an optional argument to pass to the class constructor
-	 * @return	object
-	 */
+    // 加载类 默认加载libraries里的  如果需要加载core 则$directory='core'
+    // $param 实例化参数
 	function &load_class($class, $directory = 'libraries', $param = NULL)
 	{
+	    // 用一个静态数组保存已经加载过的类 避免重复加载消耗资源 实现单例化
 		static $_classes = array();
 
-		// Does the class exist? If so, we're done...
+		// 加载过的类直接返回
 		if (isset($_classes[$class]))
 		{
 			return $_classes[$class];
@@ -150,8 +103,7 @@ if ( ! function_exists('load_class'))
 
 		$name = FALSE;
 
-		// Look for the class first in the local application/libraries folder
-		// then in the native system/libraries folder
+        // 应用目录下和系统目录下分别加载  优先加载应用目录，也就是用户自定义的
 		foreach (array(APPPATH, BASEPATH) as $path)
 		{
 			if (file_exists($path.$directory.'/'.$class.'.php'))
@@ -178,17 +130,14 @@ if ( ! function_exists('load_class'))
 			}
 		}
 
-		// Did we find the class?
 		if ($name === FALSE)
 		{
-			// Note: We use exit() rather than show_error() in order to avoid a
-			// self-referencing loop with the Exceptions class
 			set_status_header(503);
 			echo 'Unable to locate the specified class: '.$class.'.php';
 			exit(5); // EXIT_UNK_CLASS
 		}
 
-		// Keep track of what we just loaded
+		// 记录加载过的类名
 		is_loaded($class);
 
 		$_classes[$class] = isset($param)
@@ -202,13 +151,8 @@ if ( ! function_exists('load_class'))
 
 if ( ! function_exists('is_loaded'))
 {
-	/**
-	 * Keeps track of which libraries have been loaded. This function is
-	 * called by the load_class() function above
-	 *
-	 * @param	string
-	 * @return	array
-	 */
+
+    // 记录已经加载过的类 用在load_class
 	function &is_loaded($class = '')
 	{
 		static $_is_loaded = array();
@@ -226,15 +170,8 @@ if ( ! function_exists('is_loaded'))
 
 if ( ! function_exists('get_config'))
 {
-	/**
-	 * Loads the main config.php file
-	 *
-	 * This function lets us grab the config file even if the Config class
-	 * hasn't been instantiated yet
-	 *
-	 * @param	array
-	 * @return	array
-	 */
+
+    // 加载配置文件config.php
 	function &get_config(Array $replace = array())
 	{
 		static $config;
@@ -249,7 +186,6 @@ if ( ! function_exists('get_config'))
 				require($file_path);
 			}
 
-			// Is the config file in the environment folder?
 			if (file_exists($file_path = APPPATH.'config/'.ENVIRONMENT.'/config.php'))
 			{
 				require($file_path);
@@ -261,7 +197,6 @@ if ( ! function_exists('get_config'))
 				exit(3); // EXIT_CONFIG
 			}
 
-			// Does the $config array exist in the file?
 			if ( ! isset($config) OR ! is_array($config))
 			{
 				set_status_header(503);
@@ -270,7 +205,7 @@ if ( ! function_exists('get_config'))
 			}
 		}
 
-		// Are any values being dynamically added or replaced?
+
 		foreach ($replace as $key => $val)
 		{
 			$config[$key] = $val;
@@ -284,19 +219,15 @@ if ( ! function_exists('get_config'))
 
 if ( ! function_exists('config_item'))
 {
-	/**
-	 * Returns the specified config item
-	 *
-	 * @param	string
-	 * @return	mixed
-	 */
+
+    // 获取配置数组中的某个元素
 	function config_item($item)
 	{
 		static $_config;
 
 		if (empty($_config))
 		{
-			// references cannot be directly assigned to static variables, so we use an array
+		    // 引用不能直接分配给静态变量 所以我们使用一个数组
 			$_config[0] =& get_config();
 		}
 
@@ -308,11 +239,8 @@ if ( ! function_exists('config_item'))
 
 if ( ! function_exists('get_mimes'))
 {
-	/**
-	 * Returns the MIME types array from config/mimes.php
-	 *
-	 * @return	array
-	 */
+
+    // 获取mimes.php中的配置数组
 	function &get_mimes()
 	{
 		static $_mimes;

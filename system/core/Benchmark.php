@@ -1,72 +1,19 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Benchmark Class
- *
- * This class enables you to mark points and calculate the time difference
- * between them. Memory consumption can also be displayed.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Libraries
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/benchmark.html
+/*
+ * Class CI_Benchmark
+ * 这个类可以标记点 计算它们之间的时间差
+ * 内存消耗也可以
  */
 class CI_Benchmark {
 
-	/**
-	 * List of all benchmark markers
-	 *
-	 * @var	array
-	 */
+
+    // 用于存放所有标记点的数组
 	public $marker = array();
 
-	/**
-	 * Set a benchmark marker
-	 *
-	 * Multiple calls to this function can be made so that several
-	 * execution points can be timed.
-	 *
-	 * @param	string	$name	Marker name
-	 * @return	void
-	 */
+
+	//记录当前的时间点
 	public function mark($name)
 	{
 		$this->marker[$name] = microtime(TRUE);
@@ -74,36 +21,25 @@ class CI_Benchmark {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Elapsed time
-	 *
-	 * Calculates the time difference between two marked points.
-	 *
-	 * If the first parameter is empty this function instead returns the
-	 * {elapsed_time} pseudo-variable. This permits the full system
-	 * execution time to be shown in a template. The output class will
-	 * swap the real value for this variable.
-	 *
-	 * @param	string	$point1		A particular marked point
-	 * @param	string	$point2		A particular marked point
-	 * @param	int	$decimals	Number of decimal places
-	 *
-	 * @return	string	Calculated elapsed time on success,
-	 *			an '{elapsed_string}' if $point1 is empty
-	 *			or an empty string if $point1 is not found.
-	 */
+    /*
+     * 计算任意两点之间的运行时间
+     *
+     */
 	public function elapsed_time($point1 = '', $point2 = '', $decimals = 4)
 	{
+	    // 如果第一个参数为空 ，即函数参数都为空的情况下 直接返回 4
 		if ($point1 === '')
 		{
 			return '{elapsed_time}';
 		}
 
+		// 如果$point1 标记点不存在 则返回空
 		if ( ! isset($this->marker[$point1]))
 		{
 			return '';
 		}
 
+		// 如果$point2标记点不存在  用当前时间生成一个$point2
 		if ( ! isset($this->marker[$point2]))
 		{
 			$this->marker[$point2] = microtime(TRUE);
@@ -114,17 +50,21 @@ class CI_Benchmark {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Memory Usage
-	 *
-	 * Simply returns the {memory_usage} marker.
-	 *
-	 * This permits it to be put it anywhere in a template
-	 * without the memory being calculated until the end.
-	 * The output class will swap the real value for this variable.
-	 *
-	 * @return	string	'{memory_usage}'
-	 */
+      /**
+       * 显示内存占用
+       * 在视图文件中 使用下面这行代码来显示整个系统所占用的内存大小:
+       * <?php echo $this->benchmark->memory_usage();?>,也可以1.81MB,
+       * 这个方法只能在视图文件中使用，显示的结果代表整个应用所占用的内存大小。
+       * 方法很简单，就是返回1.81MB
+       *
+       * 具体实现是在输出类Output.php中实现的
+       * $memory = round(memory_get_usage() / 1024 / 1024, 2).'MB';
+       * 然后用$memory替换了1.81MB
+       * 这个核心函数是memory_get_usage()函数，
+       * 函数原型int memory_get_usage ([ bool $real_usage = false ] )。如果$real_usage设置为 TRUE，获取系统分配的真实内存尺寸。
+       * 如果未设置或者设置为 FALSE，将是 emalloc() 报告使用的内存量。
+       * php5.2.1 后不需要在编译时使用 --enable-memory-limit选项就能够使用这个函数
+       */
 	public function memory_usage()
 	{
 		return '{memory_usage}';
