@@ -2,32 +2,20 @@
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Utf8 Class
- *
- * Provides support for UTF-8 environments
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	UTF-8
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/utf8.html
+/*
+ * 编码类文件Utf8.php
  */
 class CI_Utf8 {
 
-	/**
-	 * Class constructor
-	 *
-	 * Determines if UTF-8 support is to be enabled.
-	 *
-	 * @return	void
-	 */
+    /*
+     * 构造函数 检测是否支持utf8
+     */
 	public function __construct()
 	{
 		if (
-			defined('PREG_BAD_UTF8_ERROR')				// PCRE must support UTF-8
-			&& (ICONV_ENABLED === TRUE OR MB_ENABLED === TRUE)	// iconv or mbstring must be installed
-			&& strtoupper(config_item('charset')) === 'UTF-8'	// Application charset must be UTF-8
+			defined('PREG_BAD_UTF8_ERROR')
+			&& (ICONV_ENABLED === TRUE OR MB_ENABLED === TRUE)
+			&& strtoupper(config_item('charset')) === 'UTF-8'
 			)
 		{
 			define('UTF8_ENABLED', TRUE);
@@ -42,16 +30,9 @@ class CI_Utf8 {
 		log_message('info', 'Utf8 Class Initialized');
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Clean UTF-8 strings
-	 *
-	 * Ensures strings contain only valid UTF-8 characters.
-	 *
-	 * @param	string	$str	String to clean
-	 * @return	string
-	 */
+    /*
+     *  过滤UTF8字符串，因为编码转换成功率不会到100%
+     */
 	public function clean_string($str)
 	{
 		if ($this->is_ascii($str) === FALSE)
@@ -69,18 +50,9 @@ class CI_Utf8 {
 		return $str;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Remove ASCII control characters
-	 *
-	 * Removes all ASCII control characters except horizontal tabs,
-	 * line feeds, and carriage returns, as all others can cause
-	 * problems in XML.
-	 *
-	 * @param	string	$str	String to clean
-	 * @return	string
-	 */
+    /*
+     * 删除所有在xml中可能导致问题的ASCII码字符
+     */
 	public function safe_ascii_for_xml($str)
 	{
 		return remove_invisible_characters($str, FALSE);
@@ -88,15 +60,10 @@ class CI_Utf8 {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Convert to UTF-8
-	 *
-	 * Attempts to convert a string to UTF-8.
-	 *
-	 * @param	string	$str		Input string
-	 * @param	string	$encoding	Input encoding
-	 * @return	string	$str encoded in UTF-8 or FALSE on failure
-	 */
+    // convert_to_utf8()函数将字符串转换为utf8编码，
+    //首先如果mb_convert_encoding函数存在，
+    //使用mb_convert_encoding函数转换，否则如果iconv函数存在，使用iconv转换；如果上面两个函数都不存在则不能转换返回false；如果转换完成返回转换后的字符串
+
 	public function convert_to_utf8($str, $encoding)
 	{
 		if (MB_ENABLED)
@@ -111,16 +78,7 @@ class CI_Utf8 {
 		return FALSE;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Is ASCII?
-	 *
-	 * Tests if a string is standard 7-bit ASCII or not.
-	 *
-	 * @param	string	$str	String to check
-	 * @return	bool
-	 */
+    // 检测是不是ASCII码
 	public function is_ascii($str)
 	{
 		return (preg_match('/[^\x00-\x7F]/S', $str) === 0);

@@ -75,17 +75,11 @@ class CI_URI {
 		log_message('info', 'URI Class Initialized');
 	}
 
-	// --------------------------------------------------------------------
 
-	/**
-	 * Set URI String
-	 *
-	 * @param 	string	$str
-	 * @return	void
-	 */
+    // 解析$url填充到$this->segments数组中
 	protected function _set_uri_string($str)
 	{
-		// Filter out control characters and trim slashes
+		// 移除$str不可见字符
 		$this->uri_string = trim(remove_invisible_characters($str, FALSE), '/');
 
 		if ($this->uri_string !== '')
@@ -121,14 +115,6 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Parse REQUEST_URI
-	 *
-	 * Will parse REQUEST_URI and automatically detect the URI from it,
-	 * while fixing the query string if necessary.
-	 *
-	 * @return	string
-	 */
 	protected function _parse_request_uri()
 	{
 		if ( ! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']))
@@ -182,13 +168,6 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Parse QUERY_STRING
-	 *
-	 * Will parse QUERY_STRING and automatically detect the URI from it.
-	 *
-	 * @return	string
-	 */
 	protected function _parse_query_string()
 	{
 		$uri = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');
@@ -211,13 +190,7 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Parse CLI arguments
-	 *
-	 * Take each command line argument and assume it is a URI segment.
-	 *
-	 * @return	string
-	 */
+    // 把每一个命令行参数 假设它是一个URI段
 	protected function _parse_argv()
 	{
 		$args = array_slice($_SERVER['argv'], 1);
@@ -244,15 +217,8 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Filter URI
-	 *
-	 * Filters segments for malicious characters.
-	 *
-	 * @param	string	$str
-	 * @return	void
-	 */
-	public function filter_uri(&$str)
+    //过滤不合法的url字符，允许的uri是你的配置$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-';
+    public function filter_uri(&$str)
 	{
 		if ( ! empty($str) && ! empty($this->_permitted_uri_chars) && ! preg_match('/^['.$this->_permitted_uri_chars.']+$/i'.(UTF8_ENABLED ? 'u' : ''), $str))
 		{
@@ -262,34 +228,18 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Fetch URI Segment
-	 *
-	 * @see		CI_URI::$segments
-	 * @param	int		$n		Index
-	 * @param	mixed		$no_result	What to return if the segment index is not found
-	 * @return	mixed
-	 */
+    /*
+     * 用于从URI中获取指定段 参数n是希望获取的段序号
+     * URI的段从左到右进行编号
+     */
 	public function segment($n, $no_result = NULL)
 	{
 		return isset($this->segments[$n]) ? $this->segments[$n] : $no_result;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fetch URI "routed" Segment
-	 *
-	 * Returns the re-routed URI segment (assuming routing rules are used)
-	 * based on the index provided. If there is no routing, will return
-	 * the same result as CI_URI::segment().
-	 *
-	 * @see		CI_URI::$rsegments
-	 * @see		CI_URI::segment()
-	 * @param	int		$n		Index
-	 * @param	mixed		$no_result	What to return if the segment index is not found
-	 * @return	mixed
-	 */
+    /*
+     * 返回确定路由后的一个uri段
+     */
 	public function rsegment($n, $no_result = NULL)
 	{
 		return isset($this->rsegments[$n]) ? $this->rsegments[$n] : $no_result;
@@ -452,34 +402,16 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Slash routed segment
-	 *
-	 * Fetches an URI routed segment with a slash.
-	 *
-	 * @param	int	$n	Index
-	 * @param	string	$where	Where to add the slash ('trailing' or 'leading')
-	 * @return	string
-	 */
+    //取一个URI路由段斜线
 	public function slash_rsegment($n, $where = 'trailing')
 	{
 		return $this->_slash_segment($n, $where, 'rsegment');
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal Slash segment
-	 *
-	 * Fetches an URI Segment and adds a slash to it.
-	 *
-	 * @used-by	CI_URI::slash_segment()
-	 * @used-by	CI_URI::slash_rsegment()
-	 *
-	 * @param	int	$n	Index
-	 * @param	string	$where	Where to add the slash ('trailing' or 'leading')
-	 * @param	string	$which	Array name ('segment' or 'rsegment')
-	 * @return	string
+	/*
+	 * 该方法和 segment() 类似，只是它会根据第二个参数在返回结果的前面或/和后面添加斜线。
+     * 如果第二个参数未设置，斜线会添加到后面根据源代码看，
+     * 如果第二个参数不是trailing,也不是leading,将会在头尾都加斜杠。
 	 */
 	protected function _slash_segment($n, $where = 'trailing', $which = 'segment')
 	{
@@ -497,49 +429,33 @@ class CI_URI {
 		return $leading.$this->$which($n).$trailing;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Segment Array
-	 *
-	 * @return	array	CI_URI::$segments
+	/*
+	 * 返回 URI 所有的段组成的数组
 	 */
 	public function segment_array()
 	{
 		return $this->segments;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Routed Segment Array
-	 *
-	 * @return	array	CI_URI::$rsegments
+	/*
+	 * 返回 URI 所有的段组成的数组
 	 */
 	public function rsegment_array()
 	{
 		return $this->rsegments;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Total number of segments
-	 *
-	 * @return	int
-	 */
+    /*
+     * 返回URI的总段数
+     */
 	public function total_segments()
 	{
 		return count($this->segments);
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Total number of routed segments
-	 *
-	 * @return	int
-	 */
+    /*
+     * 返回URI的总段数
+     */
 	public function total_rsegments()
 	{
 		return count($this->rsegments);
@@ -548,9 +464,7 @@ class CI_URI {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Fetch URI string
-	 *
-	 * @return	string	CI_URI::$uri_string
+	 * 返回一个相对的URI字符串
 	 */
 	public function uri_string()
 	{
@@ -559,10 +473,8 @@ class CI_URI {
 
 	// --------------------------------------------------------------------
 
-	/**
-	 * Fetch Re-routed URI string
-	 *
-	 * @return	string
+	/*
+	 * 返回一个相对的URI字符串
 	 */
 	public function ruri_string()
 	{
