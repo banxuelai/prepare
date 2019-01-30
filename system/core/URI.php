@@ -152,6 +152,7 @@ class CI_URI {
 		}
 
 		// 将查询字符串按照键名存入$_GET数组
+
 		parse_str($_SERVER['QUERY_STRING'], $_GET);
 
 		if ($uri === '/' OR $uri === '')
