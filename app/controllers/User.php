@@ -17,7 +17,7 @@ class User extends CI_Controller {
      */
     public function check_user_white()
     {
-        $userId = 1;
+        $userId = intval(g('user_id'));
 
         $r = $this->user_model->getUserWhiteRowByUserId($userId);
 
