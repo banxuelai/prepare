@@ -153,9 +153,9 @@ c、千万不要被shutdown迷惑：register_shutdown_function('_shutdown_handle
 		}
 	}
 
-/*
- * 处理框架字符集问题
- */
+    /*
+     * 处理框架字符集问题
+     */
 	$charset = strtoupper(config_item('charset'));
 	ini_set('default_charset', $charset);
 
@@ -215,7 +215,6 @@ c、千万不要被shutdown迷惑：register_shutdown_function('_shutdown_handle
 
     // 输出组件
 	$OUT =& load_class('Output', 'core');
-
 
     //下面是输出缓存的处理，这里允许我们自己写个hook来取替代CI原来Output类的缓存输出
     //如果缓存命中则输出，并结束整个CI的单次生命周期。如果没有命中缓存，或没有启用缓存，那么将继续向下执行。

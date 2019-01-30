@@ -33,8 +33,6 @@ class CI_URI {
 	{
 		$this->config =& load_class('Config', 'core');
 
-		// If query strings are enabled, we don't need to parse any segments.
-		// However, they don't make sense under CLI.
 		if (is_cli() OR $this->config->item('enable_query_strings') !== TRUE)
 		{
 			$this->_permitted_uri_chars = $this->config->item('permitted_uri_chars');
@@ -188,15 +186,12 @@ class CI_URI {
 		return $this->_remove_relative_directory($uri);
 	}
 
-	// --------------------------------------------------------------------
-
     // 把每一个命令行参数 假设它是一个URI段
 	protected function _parse_argv()
 	{
 		$args = array_slice($_SERVER['argv'], 1);
 		return $args ? implode('/', $args) : '';
 	}
-
 
     // _remove_relative_directory($uri)函数作安全处理，移除$uri中的../相对路径字符和反斜杠////
 	protected function _remove_relative_directory($uri)
@@ -215,8 +210,6 @@ class CI_URI {
 		return implode('/', $uris);
 	}
 
-	// --------------------------------------------------------------------
-
     //过滤不合法的url字符，允许的uri是你的配置$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-';
     public function filter_uri(&$str)
 	{
@@ -225,8 +218,6 @@ class CI_URI {
 			show_error('The URI you submitted has disallowed characters.', 400);
 		}
 	}
-
-	// --------------------------------------------------------------------
 
     /*
      * 用于从URI中获取指定段 参数n是希望获取的段序号
@@ -245,65 +236,25 @@ class CI_URI {
 		return isset($this->rsegments[$n]) ? $this->rsegments[$n] : $no_result;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * URI to assoc
-	 *
-	 * Generates an associative array of URI data starting at the supplied
-	 * segment index. For example, if this is your URI:
-	 *
-	 *	example.com/user/search/name/joe/location/UK/gender/male
-	 *
-	 * You can use this method to generate an array with this prototype:
-	 *
-	 *	array (
-	 *		name => joe
-	 *		location => UK
-	 *		gender => male
-	 *	 )
-	 *
-	 * @param	int	$n		Index (default: 3)
-	 * @param	array	$default	Default values
-	 * @return	array
-	 */
+    /*
+     * 该方法用于将URI的段转换成一个包含键值对的关联数组
+     */
 	public function uri_to_assoc($n = 3, $default = array())
 	{
 		return $this->_uri_to_assoc($n, $default, 'segment');
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Routed URI to assoc
-	 *
-	 * Identical to CI_URI::uri_to_assoc(), only it uses the re-routed
-	 * segment array.
-	 *
-	 * @see		CI_URI::uri_to_assoc()
-	 * @param 	int	$n		Index (default: 3)
-	 * @param 	array	$default	Default values
-	 * @return 	array
-	 */
+   /*
+    * 通过重新路由段阵列
+    */
 	public function ruri_to_assoc($n = 3, $default = array())
 	{
 		return $this->_uri_to_assoc($n, $default, 'rsegment');
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Internal URI-to-assoc
-	 *
-	 * Generates a key/value pair from the URI string or re-routed URI string.
-	 *
-	 * @used-by	CI_URI::uri_to_assoc()
-	 * @used-by	CI_URI::ruri_to_assoc()
-	 * @param	int	$n		Index (default: 3)
-	 * @param	array	$default	Default values
-	 * @param	string	$which		Array name ('segment' or 'rsegment')
-	 * @return	array
-	 */
+    /*
+     * 该方法用于将URI的段转换为一个包含键值对的关联数组
+     */
 	protected function _uri_to_assoc($n = 3, $default = array(), $which = 'segment')
 	{
 		if ( ! is_numeric($n))
@@ -362,16 +313,9 @@ class CI_URI {
 		return $retval;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Assoc to URI
-	 *
-	 * Generates a URI string from an associative array.
-	 *
-	 * @param	array	$array	Input array of key/value pairs
-	 * @return	string	URI string
-	 */
+    /*
+     * 将数组中的信息翻转成uri_string
+     */
 	public function assoc_to_uri($array)
 	{
 		$temp = array();
@@ -384,16 +328,9 @@ class CI_URI {
 		return implode('/', $temp);
 	}
 
-	// --------------------------------------------------------------------
 
-	/**
-	 * Slash segment
-	 *
-	 * Fetches an URI segment with a slash.
-	 *
-	 * @param	int	$n	Index
-	 * @param	string	$where	Where to add the slash ('trailing' or 'leading')
-	 * @return	string
+	/*
+	 * 是否给uri前后加/线
 	 */
 	public function slash_segment($n, $where = 'trailing')
 	{
