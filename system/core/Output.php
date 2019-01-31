@@ -1,125 +1,41 @@
 <?php
-/**
- * CodeIgniter
- *
- * An open source application development framework for PHP
- *
- * This content is released under the MIT License (MIT)
- *
- * Copyright (c) 2014 - 2018, British Columbia Institute of Technology
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * @package	CodeIgniter
- * @author	EllisLab Dev Team
- * @copyright	Copyright (c) 2008 - 2014, EllisLab, Inc. (https://ellislab.com/)
- * @copyright	Copyright (c) 2014 - 2018, British Columbia Institute of Technology (http://bcit.ca/)
- * @license	http://opensource.org/licenses/MIT	MIT License
- * @link	https://codeigniter.com
- * @since	Version 1.0.0
- * @filesource
- */
+
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-/**
- * Output Class
- *
- * Responsible for sending final output to the browser.
- *
- * @package		CodeIgniter
- * @subpackage	Libraries
- * @category	Output
- * @author		EllisLab Dev Team
- * @link		https://codeigniter.com/user_guide/libraries/output.html
- */
+/*
+ * Output类 发送最终的web页面到所请求的浏览器
+ * Output组件其实有很多有用的方法，不过一般情况下，你不会直接去用到它们
+ * 这里主要以Output::_display_cache()和Output::_display()为两条主线来探究
+*/
 class CI_Output {
 
-	/**
-	 * Final output string
-	 *
-	 * @var	string
-	 */
+
+    // 最终输出结果字符串
 	public $final_output;
 
-	/**
-	 * Cache expiration time
-	 *
-	 * @var	int
-	 */
+    // 缓存世间
 	public $cache_expiration = 0;
 
-	/**
-	 * List of server headers
-	 *
-	 * @var	array
-	 */
+    // 头信息
 	public $headers = array();
 
-	/**
-	 * List of mime types
-	 *
-	 * @var	array
-	 */
+    // mime类型
 	public $mimes =	array();
-
-	/**
-	 * Mime-type for the current page
-	 *
-	 * @var	string
-	 */
 	protected $mime_type = 'text/html';
 
-	/**
-	 * Enable Profiler flag
-	 *
-	 * @var	bool
-	 */
+    // 是否开启评测器
 	public $enable_profiler = FALSE;
 
-	/**
-	 * php.ini zlib.output_compression flag
-	 *
-	 * @var	bool
-	 */
+    // 是否开启gzip压缩
 	protected $_zlib_oc = FALSE;
 
-	/**
-	 * CI output compression flag
-	 *
-	 * @var	bool
-	 */
+    // 输出标签
 	protected $_compress_output = FALSE;
 
-	/**
-	 * List of profiler sections
-	 *
-	 * @var	array
-	 */
+    // 开启评测模块
 	protected $_profiler_sections =	array();
 
-	/**
-	 * Parse markers flag
-	 *
-	 * Whether or not to parse variables like {elapsed_time} and {memory_usage}.
-	 *
-	 * @var	bool
-	 */
+    // 是否替换变量0.2633耗时 and 1.89MB内存耗用
 	public $parse_exec_vars = TRUE;
 
 	/**
@@ -129,13 +45,6 @@ class CI_Output {
 	 */
 	protected static $func_overload;
 
-	/**
-	 * Class constructor
-	 *
-	 * Determines whether zLib output compression will be used.
-	 *
-	 * @return	void
-	 */
 	public function __construct()
 	{
 		$this->_zlib_oc = (bool) ini_get('zlib.output_compression');
@@ -147,20 +56,14 @@ class CI_Output {
 
 		isset(self::$func_overload) OR self::$func_overload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
 
-		// Get mime types for later
 		$this->mimes =& get_mimes();
 
 		log_message('info', 'Output Class Initialized');
 	}
 
-	// --------------------------------------------------------------------
 
-	/**
-	 * Get Output
-	 *
-	 * Returns the current output string.
-	 *
-	 * @return	string
+	/*
+	 * 获取$this->final_
 	 */
 	public function get_output()
 	{
