@@ -38,16 +38,12 @@ class CI_Output {
     // 是否替换变量0.2633耗时 and 1.89MB内存耗用
 	public $parse_exec_vars = TRUE;
 
-	/**
-	 * mbstring.func_overload flag
-	 *
-	 * @var	bool
-	 */
 	protected static $func_overload;
 
 	public function __construct()
 	{
 		$this->_zlib_oc = (bool) ini_get('zlib.output_compression');
+        // 设置压缩标记 $_compress_output
 		$this->_compress_output = (
 			$this->_zlib_oc === FALSE
 			&& config_item('compress_output') === TRUE
@@ -56,6 +52,7 @@ class CI_Output {
 
 		isset(self::$func_overload) OR self::$func_overload = (extension_loaded('mbstring') && ini_get('mbstring.func_overload'));
 
+		// 设置$mimes值
 		$this->mimes =& get_mimes();
 
 		log_message('info', 'Output Class Initialized');
@@ -63,65 +60,37 @@ class CI_Output {
 
 
 	/*
-	 * 获取$this->final_
+	 * 获取$this->final_output
 	 */
 	public function get_output()
 	{
 		return $this->final_output;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Output
-	 *
-	 * Sets the output string.
-	 *
-	 * @param	string	$output	Output data
-	 * @return	CI_Output
-	 */
+    /*
+     * 设置$this->final_output
+     */
 	public function set_output($output)
 	{
 		$this->final_output = $output;
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Append Output
-	 *
-	 * Appends data onto the output string.
-	 *
-	 * @param	string	$output	Data to append
-	 * @return	CI_Output
-	 */
+    /*
+     * 向输出字符串附加数据
+     */
 	public function append_output($output)
 	{
 		$this->final_output .= $output;
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Header
-	 *
-	 * Lets you set a server header which will be sent with the final output.
-	 *
-	 * Note: If a file is cached, headers will not be sent.
-	 * @todo	We need to figure out how to permit headers to be cached.
-	 *
-	 * @param	string	$header		Header
-	 * @param	bool	$replace	Whether to replace the old header value, if already set
-	 * @return	CI_Output
-	 */
+    // 自定义header 输出类将在最终显示页面时发送它
 	public function set_header($header, $replace = TRUE)
 	{
-		// If zlib.output_compression is enabled it will compress the output,
-		// but it will not modify the content-length header to compensate for
-		// the reduction, causing the browser to hang waiting for more data.
-		// We'll just skip content-length in those cases.
+	    // 如果php开启zlib.output_compression 压缩 就跳过content-length头的设置
+        // 这样做的理由是压缩开启后 实际输出字节数比正常少 误设置content-length头后
+        // 会使得客户端一直等待服务器发送足够字节的文本 造成无法正常
 		if ($this->_zlib_oc && strncasecmp($header, 'content-length', 14) === 0)
 		{
 			return $this;
@@ -131,17 +100,12 @@ class CI_Output {
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Set Content-Type Header
-	 *
-	 * @param	string	$mime_type	Extension of the file we're outputting
-	 * @param	string	$charset	Character set (default: NULL)
-	 * @return	CI_Output
-	 */
+    // 设置content-type
+    // 给header添加Content-type信息 允许设置页面的MIME类型
+    // 可以方便的提供 JSON 数据 JPEG XML等格式
 	public function set_content_type($mime_type, $charset = NULL)
 	{
+	    // $mime_type是要设置的MIMEE信息的文件扩展名
 		if (strpos($mime_type, '/') === FALSE)
 		{
 			$extension = ltrim($mime_type, '.');
@@ -172,13 +136,7 @@ class CI_Output {
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Get Current Content-Type Header
-	 *
-	 * @return	string	'text/html', if not already set
-	 */
+    // 获取当前正在使用的 HTTP 头 Content-Type ，不包含字符集部分
 	public function get_content_type()
 	{
 		for ($i = 0, $c = count($this->headers); $i < $c; $i++)
@@ -192,19 +150,11 @@ class CI_Output {
 		return 'text/html';
 	}
 
-	// --------------------------------------------------------------------
 
-	/**
-	 * Get Header
-	 *
-	 * @param	string	$header
-	 * @return	string
-	 */
+	// 返回请求的header头
 	public function get_header($header)
 	{
-		// Combine headers already sent with our batched headers
 		$headers = array_merge(
-			// We only need [x][0] from our multi-dimensional array
 			array_map('array_shift', $this->headers),
 			headers_list()
 		);
@@ -214,7 +164,6 @@ class CI_Output {
 			return NULL;
 		}
 
-		// Count backwards, in order to get the last matching header
 		for ($c = count($headers) - 1; $c > -1; $c--)
 		{
 			if (strncasecmp($header, $headers[$c], $l = self::strlen($header)) === 0)
@@ -226,17 +175,8 @@ class CI_Output {
 		return NULL;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
 	 * Set HTTP Status Header
-	 *
-	 * As of version 1.7.2, this is an alias for common function
-	 * set_status_header().
-	 *
-	 * @param	int	$code	Status code (default: 200)
-	 * @param	string	$text	Optional message
-	 * @return	CI_Output
 	 */
 	public function set_status_header($code = 200, $text = '')
 	{
@@ -244,14 +184,7 @@ class CI_Output {
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
-	/**
-	 * Enable/disable Profiler
-	 *
-	 * @param	bool	$val	TRUE to enable or FALSE to disable
-	 * @return	CI_Output
-	 */
+    // 设置$enable_profiler值是否开启分析器
 	public function enable_profiler($val = TRUE)
 	{
 		$this->enable_profiler = is_bool($val) ? $val : TRUE;
@@ -299,21 +232,8 @@ class CI_Output {
 		return $this;
 	}
 
-	// --------------------------------------------------------------------
-
 	/**
-	 * Display Output
-	 *
-	 * Processes and sends finalized output data to the browser along
-	 * with any server headers and profile data. It also stops benchmark
-	 * timers so the page rendering speed and memory usage can be shown.
-	 *
-	 * Note: All "view" data is automatically put into $this->final_output
-	 *	 by controller class.
-	 *
-	 * @uses	CI_Output::$final_output
-	 * @param	string	$output	Output data override
-	 * @return	void
+	 * 将最终结果输出到浏览器
 	 */
 	public function _display($output = '')
 	{
