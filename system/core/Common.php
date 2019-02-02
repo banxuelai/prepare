@@ -119,7 +119,7 @@ if ( ! function_exists('load_class'))
 			}
 		}
 
-		// Is the request a class extension? If so we load it too
+		// for instance  core/MY_Controller core/MY_Model  core/MY_Output
 		if (file_exists(APPPATH.$directory.'/'.config_item('subclass_prefix').$class.'.php'))
 		{
 			$name = config_item('subclass_prefix').$class;

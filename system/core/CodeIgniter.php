@@ -80,7 +80,7 @@ if ( ! is_php('5.4'))
 }
 
 
-//自定义错误 异常和程序完成的函数
+    //自定义错误 异常和程序完成的函数
 	set_error_handler('_error_handler');
 	set_exception_handler('_exception_handler');
 	register_shutdown_function('_shutdown_handler');
