@@ -7,8 +7,8 @@ class Search_model extends CI_Model
     }
 
 
-    public function test()
+    public function synDataToEs()
     {
-        echo 'test_model';
+        return $this->service('es/es_prepare_service')->synDataToEs();
     }
 }

@@ -83,3 +83,10 @@ defined('EXIT_USER_INPUT')     OR define('EXIT_USER_INPUT', 7); // invalid user 
 defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
+
+# Reids配置文件
+define('DEFAULT_REDIS_ADD', 'test.alldb.intra.manhua.weibo.cn');
+define('DEFAULT_REDIS_ADD_SLAVE', 'test.alldb.intra.manhua.weibo.cn');
+define('DEFAULT_REDIS_PORT', 6379);
+# redis认证密码
+define('REDIS_AUTH_PASS', '52ei5SOxRTGk11cuEGwRRBcSO2j22jNvXjekHksZKlPwRJQWQlr8z9hHy915dWlwnpoh4GmVW0r6jmdieSqJGiIdP0QAcIezkUoU1uyfPRSFPDfkVWA3DJNTo5Tre11');

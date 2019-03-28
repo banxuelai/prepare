@@ -13,6 +13,10 @@ class Servicelib extends CI_Model
     const Table_Comic_Info = 'comic_info';
     const Table_Comic_Author_Map = 'comic_author_map';
     const Table_Comic_Author_Info = 'comic_author_info';
+
+    # 项目信息表
+    const Table_Project_Info = 'project_info';
+
     /**
      * KeyName
      * @param $nameArr

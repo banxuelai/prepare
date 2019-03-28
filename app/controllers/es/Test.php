@@ -14,8 +14,9 @@ class Test extends CI_Controller
         $this->load->model('user_model');
     }
 
-    public function show()
+    public function syn_es_data()
     {
-        print_r('1111111111');
+        $this->load->model('search_model');
+        $this->search_model->synDataToEs();
     }
 }

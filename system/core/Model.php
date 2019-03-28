@@ -9,12 +9,21 @@ class CI_Model {
 
     static public $serviceInstance = array();
     static public $dbConn = array();
-
+    static public $redisConn = null;
 
     // 构造函数
 	public function __construct()
     {
 
+    }
+
+    function redisInit()
+    {
+        if(self::$redisConn === null) {
+            $this->load->library('redis');
+            self::$redisConn = $this->redis;
+        }
+        return self::$redisConn;
     }
 
     /*
