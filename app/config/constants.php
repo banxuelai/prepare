@@ -85,8 +85,8 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 # Reids配置文件
-define('DEFAULT_REDIS_ADD', 'test.alldb.intra.manhua.weibo.cn');
-define('DEFAULT_REDIS_ADD_SLAVE', 'test.alldb.intra.manhua.weibo.cn');
+define('DEFAULT_REDIS_ADD', '172.16.234.163');
+define('DEFAULT_REDIS_ADD_SLAVE', '172.16.234.163');
 define('DEFAULT_REDIS_PORT', 6379);
 # redis认证密码
 define('REDIS_AUTH_PASS', '52ei5SOxRTGk11cuEGwRRBcSO2j22jNvXjekHksZKlPwRJQWQlr8z9hHy915dWlwnpoh4GmVW0r6jmdieSqJGiIdP0QAcIezkUoU1uyfPRSFPDfkVWA3DJNTo5Tre11');
