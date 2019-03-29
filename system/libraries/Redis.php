@@ -41,10 +41,9 @@ class CI_Redis
         if($host && $port) {
             $redis = new Redis();
             $redis->connect($host, $port);
-            # redis认证密码当前仅限于测试163
-            if(ENVIRONMENT == 'testing') {
-            	$redis->auth(REDIS_AUTH_PASS);
-            }
+
+            $redis->auth(REDIS_AUTH_PASS);
+
             return $redis;
         } else {
             // todo;
