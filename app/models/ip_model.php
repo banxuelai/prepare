@@ -17,12 +17,11 @@ class Ip_model extends CI_Model
     {
         $ipArr = explode('.', $ipAddress);
         $scoreArr = array();
-
+        $score = 0;
         foreach ($ipArr as $key => $ipItem)
         {
-            $score = 0;
             if($key < 3) {
-                $score += $ipItem * power(256,intval(3 - $key));
+                $score += $ipItem * pow(256,intval(3 - $key));
             }
             else {
                 $endArr = explode('/', $ipItem);

@@ -14,7 +14,7 @@ class Ip extends  CI_Controller
      */
     public function import_ips_to_redis()
     {
-        $fileName = "/GeoLite2-City-Blocks-IPv4.csv";
+        $fileName = "D:\WAMP\GeoLite2-City-Blocks-IPv4.csv";
 
         $this->load->model('ip_model');
 
@@ -30,7 +30,7 @@ class Ip extends  CI_Controller
      */
     public function import_cities_to_redis()
     {
-        $fileName = "/GeoLite2-City-Locations-zh-CN.csv";
+        $fileName = "D:\WAMP\GeoLite2-City-Locations-zh-CN.csv";
 
         $this->load->model('ip_model');
 
