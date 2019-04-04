@@ -38,4 +38,20 @@ class Ip extends  CI_Controller
 
         $this->displayJson($r);
     }
+
+    /**
+     * @desc 查询IP所属城市
+     * @author banxuelai@vcomic.com
+     * @date 2019/4/4
+     */
+    public function get_city_by_ip()
+    {
+        $ip = trim(g('ip'));
+
+        $this->load->model('ip_model');
+
+        $r = $this->ip_model->getCityByIp($ip);
+
+        $this->displayJson(array('code' => 1, 'message' => 'ok', 'data' => $r));
+    }
 }

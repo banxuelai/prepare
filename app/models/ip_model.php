@@ -35,6 +35,25 @@ class Ip_model extends CI_Model
     }
 
     /**
+     * @desc IP转整型
+     * @param $ipAddress
+     * @return float|int
+     * @author banxuelai@vcomic.com
+     * @date 2019/4/3
+     */
+    public function ip2Score($ipAddress)
+    {
+        $ipArr = explode('.', $ipAddress);
+
+        $score = 0;
+        foreach ($ipArr as $key => $ipItem)
+        {
+            $score += $ipItem * pow(256,intval(3 - $key));
+        }
+        return $score;
+    }
+
+    /**
      * @desc 导入IP地址库
      * @param $fileName
      * @return array
@@ -115,5 +134,44 @@ class Ip_model extends CI_Model
             }
         }
         return array('code' => 1, 'message' => 'ok');
+    }
+
+    /**
+     * @desc 查询IP所属城市
+     * @param $ip
+     * @return array
+     * @author banxuelai@vcomic.com
+     * @date 2019/4/4
+     */
+    public function getCityByIp($ip)
+    {
+        # 默认返回
+        $returnData = array(
+            'ip'        => $ip,
+            'city_info' => array(),
+        );
+
+        $ip = trim($ip);
+        if(empty($ip)) {
+            return $returnData;
+        }
+
+        # ip_score
+        $ipScore = $this->ip2Score($ip);
+
+        # 获取cityId
+        $cityId = $this->redisInit()->slave()->zrevrangebyscore("ip2cityid:", $ipScore, 0, 0, 0, 1);
+
+        # hash 获取city信息
+        $city = $this->redisInit()->slave()->hget("cityid2city:", $cityId);
+
+        return array(
+            'ip'        => $ip,
+            'city_info' => array(
+                'city_id'   => $cityId,
+                'city'      => $city,
+            ),
+        );
+
     }
 }
