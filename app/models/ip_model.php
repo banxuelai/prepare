@@ -86,7 +86,7 @@ class Ip_model extends CI_Model
                 {
                     # 写入有序集合 有序集合 zset  城市ID为member  IP整型为score
                     echo  "ip2cityid:".'---city_id:'.$cityId.'----ip:'.$ip.PHP_EOL;
-                    $this->redisInit()->master()->zadd("ip2cityid:", $cityId, $ip);
+                    $this->redisInit()->master()->zadd("ip2cityid:", $ip, $cityId);
                 }
             }
         }
